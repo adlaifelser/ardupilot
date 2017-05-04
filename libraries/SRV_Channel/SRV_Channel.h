@@ -101,8 +101,10 @@ public:
         k_throttle              = 70,
         k_tracker_yaw           = 71,            ///< antennatracker yaw
         k_tracker_pitch         = 72,            ///< antennatracker pitch
-        k_throttleLeft          = 73,
-        k_throttleRight         = 74,
+        k_throttleLeftT         = 73,
+        k_throttleRightT        = 74,
+        k_throttleLeftB         = 83,
+        k_throttleRightB        = 84,
         k_tiltMotorLeft         = 75,            ///< vectored thrust, left tilt
         k_tiltMotorRight        = 76,            ///< vectored thrust, right tilt
         k_elevon_left           = 77,

@@ -643,29 +643,38 @@ void Plane::servo_output_mixers(void)
 }
 
 /*
-  support for twin-engine planes
+  support for quad-engine planes
  */
 void Plane::servos_twin_engine_mix(void)
 {
     float throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
     float rud_gain = float(plane.g2.rudd_dt_gain) / 100;
+    float elev_gain = float(plane.g2.rudd_dt_gain) / 100;
     float rudder = rud_gain * SRV_Channels::get_output_scaled(SRV_Channel::k_rudder) / float(SERVO_MAX);
+    float elevator = elev_gain * SRV_Channels::get_output_scaled(SRV_Channel::k_elevator) / float(SERVO_MAX);
 
-    float throttle_left, throttle_right;
+    float throttle_leftT, throttle_rightT, throttle_leftB, throttle_rightB;
 
     if (throttle < 0 && aparm.throttle_min < 0) {
         // doing reverse thrust
-        throttle_left  = constrain_float(throttle + 50 * rudder, -100, 0);
-        throttle_right = constrain_float(throttle - 50 * rudder, -100, 0);
+        throttle_leftT  = constrain_float(throttle + 50 * rudder - 50 * elevator, -100, 0);
+        throttle_rightT = constrain_float(throttle - 50 * rudder - 50 * elevator, -100, 0);
+        throttle_leftB  = constrain_float(throttle + 50 * rudder + 50 * elevator, -100, 0);
+        throttle_rightB = constrain_float(throttle - 50 * rudder + 50 * elevator, -100, 0);
     } else if (throttle <= 0) {
-        throttle_left  = throttle_right = 0;
+        throttle_leftT  = throttle_rightT = throttle_leftB  = throttle_rightB = 0;
     } else {
         // doing forward thrust
-        throttle_left  = constrain_float(throttle + 50 * rudder, 0, 100);
-        throttle_right = constrain_float(throttle - 50 * rudder, 0, 100);
+        throttle_leftT  = constrain_float(throttle + 50 * rudder - 50 * elevator, 0, 100);
+        throttle_rightT = constrain_float(throttle - 50 * rudder - 50 * elevator, 0, 100);
+        throttle_leftB  = constrain_float(throttle + 50 * rudder + 50 * elevator, 0, 100);
+        throttle_rightB = constrain_float(throttle - 50 * rudder + 50 * elevator, 0, 100);
+
     }
-    SRV_Channels::set_output_scaled(SRV_Channel::k_throttleLeft, throttle_left);
-    SRV_Channels::set_output_scaled(SRV_Channel::k_throttleRight, throttle_right);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_throttleLeftT, throttle_leftT);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_throttleRightT, throttle_rightT);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_throttleLeftB, throttle_leftB);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_throttleRightB, throttle_rightB);
 
 }
 

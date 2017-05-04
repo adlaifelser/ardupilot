@@ -40,8 +40,10 @@ void AP_MotorsTailsitter::init(motor_frame_class frame_class, motor_frame_type f
 AP_MotorsTailsitter::AP_MotorsTailsitter(uint16_t loop_rate, uint16_t speed_hz) :
     AP_MotorsMulticopter(loop_rate, speed_hz)
 {
-    SRV_Channels::set_rc_frequency(SRV_Channel::k_throttleLeft, speed_hz);
-    SRV_Channels::set_rc_frequency(SRV_Channel::k_throttleRight, speed_hz);
+    SRV_Channels::set_rc_frequency(SRV_Channel::k_throttleLeftT, speed_hz);
+    SRV_Channels::set_rc_frequency(SRV_Channel::k_throttleRightT, speed_hz);
+    SRV_Channels::set_rc_frequency(SRV_Channel::k_throttleLeftB, speed_hz);
+    SRV_Channels::set_rc_frequency(SRV_Channel::k_throttleRightB, speed_hz);
 }
 
 void AP_MotorsTailsitter::output_to_motors()
@@ -49,9 +51,11 @@ void AP_MotorsTailsitter::output_to_motors()
     if (!_flags.initialised_ok) {
         return;
     }
-    float throttle_left  = 0;
-    float throttle_right = 0;
-    
+    float throttle_leftT  = 0;
+    float throttle_rightT = 0;
+    float throttle_leftB  = 0;
+    float throttle_rightB = 0;
+
     switch (_spool_mode) {
         case SHUT_DOWN:
             _throttle = 0;
@@ -63,8 +67,10 @@ void AP_MotorsTailsitter::output_to_motors()
         case SPOOL_UP:
         case THROTTLE_UNLIMITED:
         case SPOOL_DOWN:
-            throttle_left  = constrain_float(_throttle + _rudder*0.5, 0, 1);
-            throttle_right = constrain_float(_throttle - _rudder*0.5, 0, 1);
+            throttle_leftT  = constrain_float(_throttle + _rudder*0.5 - _elevator*0.5, 0, 1);
+            throttle_rightT = constrain_float(_throttle - _rudder*0.5 - _elevator*0.5, 0, 1);
+            throttle_leftB  = constrain_float(_throttle + _rudder*0.5 + _elevator*0.5, 0, 1);
+            throttle_rightB = constrain_float(_throttle - _rudder*0.5 + _elevator*0.5, 0, 1);
             break;
     }
     // outputs are setup here, and written to the HAL by the plane servos loop
@@ -74,8 +80,10 @@ void AP_MotorsTailsitter::output_to_motors()
     SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, _throttle*THROTTLE_RANGE);
 
     // also support differential roll with twin motors
-    SRV_Channels::set_output_scaled(SRV_Channel::k_throttleLeft,  throttle_left*THROTTLE_RANGE);
-    SRV_Channels::set_output_scaled(SRV_Channel::k_throttleRight, throttle_right*THROTTLE_RANGE);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_throttleLeftT,  throttle_leftT*THROTTLE_RANGE);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_throttleRightT, throttle_rightT*THROTTLE_RANGE);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_throttleLeftB,  throttle_leftB*THROTTLE_RANGE);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_throttleRightB, throttle_rightB*THROTTLE_RANGE);
 
 #if APM_BUILD_TYPE(APM_BUILD_ArduCopter)
     SRV_Channels::calc_pwm();
